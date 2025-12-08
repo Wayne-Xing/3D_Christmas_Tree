@@ -805,14 +805,67 @@
 //   - @Description: 3D Christmas tree with AI Gestures + Touch + Traffic Analytics.
 //   - @Style: Luxury Dashboard UI (Hidden by default, toggle with 'S')
 // --> 
+        // function loadPredefinedImages() {
+        //     const loader = new THREE.TextureLoader();
+        //     if (CONFIG.preload.autoScanLocal) {
+        //         for (let i = 1; i <= CONFIG.preload.scanCount; i++) {
+        //             const pathJpg = `./images/(${i}).jpg`;
+        //             const pathPng = `./images/(${i}).png`;
+        //             loader.load(pathJpg, (t) => { t.colorSpace = THREE.SRGBColorSpace; addPhotoToScene(t); }, undefined, () => {
+        //                      loader.load(pathPng, (t) => { t.colorSpace = THREE.SRGBColorSpace; addPhotoToScene(t); }, undefined, () => {} );
+        //             });
+        //         }
+        //     }
+        // }
+
+        // ======================================================
+        // 修改后的 loadPredefinedImages 函数 - 优先读取本地文件夹
+        // ======================================================
         function loadPredefinedImages() {
             const loader = new THREE.TextureLoader();
+            
+            // --- 配置区域 ---
+            const localFolder = './jomi/'; // 你的文件夹路径，注意最后要有斜杠
+            
+            // 模式 A: 【推荐】指定具体文件名
+            // 将你文件夹里确定的文件名写在这里
+            // const specificFiles = [
+            //     '1.jpg',  // 替换成你的文件名
+            //     'family.png',
+            //     'christmas.jpg'
+            // ];
+
+            // 模式 B: 批量扫描数量 (如果你把照片重命名为 1.jpg, 2.jpg...)
+            const scanLimit = 30; 
+
+            // // --- 执行加载逻辑 ---
+
+            // // 1. 加载指定文件 (优先)
+            // specificFiles.forEach(fileName => {
+            //     loader.load(localFolder + fileName, (t) => {
+            //         t.colorSpace = THREE.SRGBColorSpace;
+            //         addPhotoToScene(t);
+            //         console.log(`成功加载本地图片: ${fileName}`);
+            //     }, undefined, (err) => {
+            //         console.warn(`无法找到图片: ${fileName}，请检查文件名是否正确`);
+            //     });
+            // });
+
+            // 2. 批量扫描数字命名文件 (自动扫描 1.jpg 到 30.jpg)
             if (CONFIG.preload.autoScanLocal) {
-                for (let i = 1; i <= CONFIG.preload.scanCount; i++) {
-                    const pathJpg = `./images/(${i}).jpg`;
-                    const pathPng = `./images/(${i}).png`;
-                    loader.load(pathJpg, (t) => { t.colorSpace = THREE.SRGBColorSpace; addPhotoToScene(t); }, undefined, () => {
-                             loader.load(pathPng, (t) => { t.colorSpace = THREE.SRGBColorSpace; addPhotoToScene(t); }, undefined, () => {} );
+                for (let i = 1; i <= scanLimit; i++) {
+                    // 尝试加载 .jpg
+                    loader.load(`${localFolder}${i}.jpg`, (t) => {
+                        t.colorSpace = THREE.SRGBColorSpace;
+                        addPhotoToScene(t);
+                    }, undefined, () => {
+                        // 如果 .jpg 失败，尝试 .png
+                        loader.load(`${localFolder}${i}.png`, (t) => {
+                            t.colorSpace = THREE.SRGBColorSpace;
+                            addPhotoToScene(t);
+                        }, undefined, () => {
+                            // 静默失败，不报错
+                        });
                     });
                 }
             }
