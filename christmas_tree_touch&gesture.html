@@ -278,6 +278,10 @@
     </script>
 </head>
 <body>
+    <audio id="bgm-player" loop>
+    <source src="./music/bgm.mp3" type="audio/mp3">
+    Your browser does not support the audio element.
+    </audio>
 
     <div id="loader">
         <div class="spinner"></div>
@@ -294,14 +298,15 @@
         <div class="controls-wrapper">
             <div class="btn-group">
                 <div class="control-btn" id="cam-btn">📷 Enable Gesture</div>
-                <label class="control-btn">
+                <div class="control-btn" id="music-btn">🎵 Music: OFF</div>
+                <!-- <label class="control-btn">
                     Select Folder
                     <input type="file" id="folder-input" webkitdirectory directory multiple>
                 </label>
                 <label class="control-btn">
                     Select Files
                     <input type="file" id="file-input" multiple accept="image/*">
-                </label>
+                </label> -->
             </div>
             <!-- 【修改】添加了 Press 'S' for Stats 的提示 -->
             <div class="hint-text">Touch: Drag | Click Photo | Press 'S' for Stats</div>
@@ -1009,6 +1014,46 @@
             particleSystem.forEach(p => p.update(dt, STATE.mode, STATE.focusTarget));
             updateSnow();
             composer.render();
+            // === 新增：音乐控制逻辑 ===
+            const musicBtn = document.getElementById('music-btn');
+            const bgm = document.getElementById('bgm-player');
+            
+            // 设置初始音量 (0.0 到 1.0)
+            bgm.volume = 0.5; 
+
+            musicBtn.addEventListener('click', () => {
+                if (bgm.paused) {
+                    // 如果暂停中，则播放
+                    bgm.play().then(() => {
+                        musicBtn.innerText = "🎵 Music: ON";
+                        musicBtn.classList.add('active'); // 添加发光样式
+                    }).catch(e => {
+                        console.error("播放失败:", e);
+                    });
+                } else {
+                    // 如果播放中，则暂停
+                    bgm.pause();
+                    musicBtn.innerText = "🎵 Music: OFF";
+                    musicBtn.classList.remove('active'); // 移除发光样式
+                }
+            });
+
+            // 【可选】用户第一次触摸屏幕任意位置时，尝试自动播放
+            // 这样用户即使不点按钮，开始玩树的时候也有音乐
+            const autoPlayHandler = () => {
+                if(bgm.paused) {
+                    bgm.play().then(() => {
+                        musicBtn.innerText = "🎵 Music: ON";
+                        musicBtn.classList.add('active');
+                    }).catch(()=>{});
+                }
+                // 尝试一次后就移除监听，避免重复触发
+                window.removeEventListener('click', autoPlayHandler);
+                window.removeEventListener('touchstart', autoPlayHandler);
+            };
+            
+            window.addEventListener('click', autoPlayHandler);
+            window.addEventListener('touchstart', autoPlayHandler);
         }
 // <!--
 //   - @Project: Grand Luxury Tree - Christmas Edition (Touch & Gesture & Stats)
